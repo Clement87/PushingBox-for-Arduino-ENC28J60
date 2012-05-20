@@ -9,11 +9,10 @@
   /////////////////
  // MODIFY HERE //
 /////////////////
-static byte mymac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x19};   // Be sure this address is unique in your network
+static byte mymac[] = {0x24,0x99,0x46,0xAD,0x30,0x31};   // Be sure this address is unique in your network
 
 //Your secret DevID from PushingBox.com. You can use multiple DevID  on multiple Pin if you want
-//#define DEVID1 "Your_DevID_Here"        //Scenario : "The mailbox is open"
-#define DEVID1 "v586BA8C2E39BD1D"
+#define DEVID1 "Your_DevID_Here"        //Scenario : "The mailbox is open"
 
 //Numeric Pin where you connect your switch
 #define pinDevid1 3  // Example : the mailbox switch is connect to the Pin 3
@@ -26,6 +25,7 @@ static byte mymac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x19};   // Be sure this a
 
 char website[] PROGMEM = "api.pushingbox.com";
 byte Ethernet::buffer[700];
+Stash stash;
 boolean pinDevid1State = false;
 
 
@@ -37,11 +37,14 @@ static void my_result_cb (byte status, word off, word len) {
 
 void setup () {
   Serial.begin(9600);
-  
   pinMode(pinDevid1, INPUT);
   
   if(DEBUG){Serial.println("\n[getDHCPandDNS]");}
-  if (ether.begin(sizeof Ethernet::buffer, mymac, 10) == 0) 
+  
+  //
+  //***Depending of your Shield, you may have to try this line instead of the second***//
+  //if(ether.begin(sizeof Ethernet::buffer, mymac) == 0) 
+  if(ether.begin(sizeof Ethernet::buffer, mymac, 10) == 0) 
     if(DEBUG){Serial.println( "Failed to access Ethernet controller");}
     
   if (!ether.dhcpSetup())
@@ -65,8 +68,8 @@ void loop () {
   // incoming packets will be ignored until a new lease has been acquired
   if (ether.dhcpExpired() && !ether.dhcpSetup())
     if(DEBUG){Serial.println("DHCP failed");}
-    
-  ether.packetLoop(ether.packetReceive());
+ 
+    ether.packetLoop(ether.packetReceive());
   
       ////
       // Listening for the pinDevid1 state
@@ -77,7 +80,7 @@ void loop () {
         pinDevid1State = true;
         //Sending request to PushingBox when the pin is HIGHT
         ether.browseUrl(PSTR("/pushingbox?devid="), DEVID1, website, my_result_cb);
-        delay(500);
+        delay(500);  
       }
        if (digitalRead(pinDevid1) == LOW && pinDevid1State == true) // switch on pinDevid1 is OFF
       {
