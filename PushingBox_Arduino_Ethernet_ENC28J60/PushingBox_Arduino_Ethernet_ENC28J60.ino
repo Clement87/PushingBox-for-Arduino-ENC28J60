@@ -28,13 +28,6 @@ byte Ethernet::buffer[700];
 Stash stash;
 boolean pinDevid1State = false;
 
-
-// called when the client request is complete
-static void my_result_cb (byte status, word off, word len) {
-  if(DEBUG){Serial.print("<<< reply ");}
-  if(DEBUG){Serial.println((const char*) Ethernet::buffer + off);}
-}
-
 void setup () {
   Serial.begin(9600);
   pinMode(pinDevid1, INPUT);
@@ -60,17 +53,14 @@ void setup () {
   if (!ether.dnsLookup(website))
     if(DEBUG){Serial.println("DNS failed");}
   if(DEBUG){ether.printIp("Server: ", ether.hisip);}
+  
+ 
 }
 
 void loop () {
-  
-  // DHCP expiration is a bit brutal, because all other ethernet activity and
-  // incoming packets will be ignored until a new lease has been acquired
-  if (ether.dhcpExpired() && !ether.dhcpSetup())
-    if(DEBUG){Serial.println("DHCP failed");}
  
     ether.packetLoop(ether.packetReceive());
-  
+    
       ////
       // Listening for the pinDevid1 state
       ////
@@ -79,7 +69,7 @@ void loop () {
         if(DEBUG){Serial.println("pinDevid1 is HIGH");}
         pinDevid1State = true;
         //Sending request to PushingBox when the pin is HIGHT
-        ether.browseUrl(PSTR("/pushingbox?devid="), DEVID1, website, my_result_cb);
+        ether.browseUrl(PSTR("/pushingbox?devid="), DEVID1, website, my_callback);
         delay(500);  
       }
        if (digitalRead(pinDevid1) == LOW && pinDevid1State == true) // switch on pinDevid1 is OFF
@@ -87,7 +77,16 @@ void loop () {
         if(DEBUG){Serial.println("pinDevid1 is LOW");}
         pinDevid1State = false;
         //Sending request to PushingBox when the pin is LOW
-        //ether.browseUrl(PSTR("/pushingbox?devid="), DEVID1, website, my_result_cb);
+        //ether.browseUrl(PSTR("/pushingbox?devid="), DEVID1, website, my_callback);
         delay(500);
       }
+      
+}
+
+// called when the client request is complete
+static void my_callback (byte status, word off, word len) {
+  Serial.println(">>>");
+  Ethernet::buffer[off+300] = 0;
+  Serial.print((const char*) Ethernet::buffer + off);
+  Serial.println("...");
 }
