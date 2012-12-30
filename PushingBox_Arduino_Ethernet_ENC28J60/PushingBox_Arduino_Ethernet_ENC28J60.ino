@@ -12,13 +12,13 @@
 static byte mymac[] = {0x24,0x99,0x46,0xAD,0x30,0x31};   // Be sure this address is unique in your network
 
 //Your secret DevID from PushingBox.com. You can use multiple DevID  on multiple Pin if you want
-#define DEVID1 "Your_DevID_Here"        //Scenario : "The mailbox is open"
+char DEVID1[] = "Your_DevID_Here";        //Scenario : "The mailbox is open"
 
 //Numeric Pin where you connect your switch
-#define pinDevid1 3  // Example : the mailbox switch is connect to the Pin 3
+uint8_t pinDevid1 = 3;  // Example : the mailbox switch is connect to the Pin 3
 
 // Debug mode
-#define DEBUG true
+boolean DEBUG = true;
   ///////
  //End//
 ///////
@@ -26,7 +26,7 @@ static byte mymac[] = {0x24,0x99,0x46,0xAD,0x30,0x31};   // Be sure this address
 char website[] PROGMEM = "api.pushingbox.com";
 byte Ethernet::buffer[700];
 Stash stash;
-boolean pinDevid1State = false;
+boolean pinDevid1State = false;  // Save the last state of the Pin for DEVID1
 
 void setup () {
   Serial.begin(9600);
@@ -39,9 +39,11 @@ void setup () {
   //if(ether.begin(sizeof Ethernet::buffer, mymac) == 0) 
   if(ether.begin(sizeof Ethernet::buffer, mymac, 10) == 0) 
     if(DEBUG){Serial.println( "Failed to access Ethernet controller");}
-    
-  if (!ether.dhcpSetup())
-    if(DEBUG){Serial.println("DHCP failed");}
+  
+  // Wait until we have an IP from the DHCP
+  while(!ether.dhcpSetup()){
+    if(DEBUG){Serial.println("Error: DHCP failed. Can't get an IP address, let's retry...");}
+  }
   
   if(DEBUG){
     ether.printIp("My IP: ", ether.myip);
