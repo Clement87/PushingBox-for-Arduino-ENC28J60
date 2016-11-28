@@ -23,7 +23,7 @@ boolean DEBUG = true;
  //End//
 ///////
 
-char website[] PROGMEM = "api.pushingbox.com";
+const char website[] PROGMEM = "api.pushingbox.com";
 byte Ethernet::buffer[700];
 Stash stash;
 boolean pinDevid1State = false;  // Save the last state of the Pin for DEVID1
@@ -47,7 +47,7 @@ void setup () {
   
   if(DEBUG){
     ether.printIp("My IP: ", ether.myip);
-    ether.printIp("Netmask: ", ether.mymask);
+    ether.printIp("Netmask: ", ether.netmask);
     ether.printIp("GW IP: ", ether.gwip);
     ether.printIp("DNS IP: ", ether.dnsip);
   }
